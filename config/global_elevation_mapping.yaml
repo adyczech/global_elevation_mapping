@@ -12,7 +12,7 @@ global_elevation_mapping:
     resolution: 0.25
     width: 50.0 # x 
     hegith: 50.0 # y
-    layers: ["elevation"]
+    layers: ["elevation", "elevation_inpainted"]
 
 grid_map_visualization:
   ros__parameters:
@@ -23,4 +23,4 @@ grid_map_visualization:
     elevation_map_points:
       type: point_cloud
       params:
-        layer: elevation #elevation_inpainted
+        layer: elevation_inpainted #elevation #

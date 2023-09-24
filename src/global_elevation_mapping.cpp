@@ -10,7 +10,6 @@ GlobalElevationMapping::GlobalElevationMapping():
     setup_publishers();
     initialize();
 
-
     RCLCPP_INFO(this->get_logger(), "GlobalElevationMapping started");
 }
 
@@ -30,9 +29,11 @@ void GlobalElevationMapping::read_parameters(void)
     declare_parameter("resolution", 0.5);
     declare_parameter("width", 5.0);
     declare_parameter("height", 5.0);
-    declare_parameter("layers", std::vector<std::string>()); //TODO: check how to declare array
+    declare_parameter("layers", std::vector<std::string>({"elevation"}));
 
-    RCLCPP_INFO(this->get_logger(), "GlobalElevationMapping with width: %f, height:%f and resolution: %f",
+    map_layers_ = get_parameter("layers").as_string_array();
+
+    RCLCPP_INFO(this->get_logger(), "GlobalElevationMapping with width: %f, height:%f, resolution: %f",
         get_parameter("width").as_double(),
         get_parameter("height").as_double(),
         get_parameter("resolution").as_double()
@@ -63,7 +64,10 @@ void GlobalElevationMapping::initialize(void)
         grid_map::Length(get_parameter("width").as_double(), get_parameter("height").as_double()),
         get_parameter("resolution").as_double()
     );
-    map_.add("elevation"); //TODO: initialize all layers from parameters
+
+    for(auto layer : map_layers_){
+        map_.add(layer);
+    }
 
     publish_map_timer_ = rclcpp::create_timer(
         this,
@@ -80,12 +84,11 @@ void GlobalElevationMapping::input_grid_map_callback(const grid_map_msgs::msg::G
     grid_map::GridMap local_map;
     grid_map::GridMapRosConverter::fromMessage(*msg, local_map);
 
-    map_.addDataFrom(local_map, true, false, false, {"elevation"});
+    map_.addDataFrom(local_map, true, false, false, map_layers_);
 }
 
 void GlobalElevationMapping::publish_map_callback(void)
 {    
-    RCLCPP_INFO(this->get_logger(), "Global map published1"); 
     grid_map_msgs::msg::GridMap::SharedPtr output_msg = std::make_shared<grid_map_msgs::msg::GridMap>();
     output_msg = grid_map::GridMapRosConverter::toMessage(map_);
 

@@ -39,6 +39,7 @@ class GlobalElevationMapping : public rclcpp::Node
     std::vector<std::string> layers_;
 
     grid_map::GridMap map_;
+    std::vector<std::string> map_layers_;
 
     rclcpp::Subscription<grid_map_msgs::msg::GridMap>::SharedPtr input_grid_map_sub_;
     rclcpp::Publisher<grid_map_msgs::msg::GridMap>::SharedPtr output_grid_map_pub_;
