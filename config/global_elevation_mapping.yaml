@@ -14,13 +14,13 @@ global_elevation_mapping:
     hegith: 50.0 # y
     layers: ["elevation", "elevation_inpainted"]
 
-grid_map_visualization:
+global_elevation_mapping_visualization:
   ros__parameters:
     grid_map_topic: /global_elevation_map
 
-    grid_map_visualizations: [elevation_map_points] #, traversability_grid]
+    grid_map_visualizations: [global_elevation_map_points]
 
-    elevation_map_points:
+    global_elevation_map_points:
       type: point_cloud
       params:
         layer: elevation_inpainted #elevation #

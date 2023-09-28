@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
-    use_sim_time = LaunchConfiguration('use_sim_time', default=True)
+    use_sim_time = LaunchConfiguration('use_sim_time', default=False)
 
     global_elevation_mapping_config = os.path.join(
         get_package_share_directory('global_elevation_mapping'),
@@ -23,15 +23,15 @@ def generate_launch_description():
             arguments=['--ros-args', '--log-level', 'INFO']
     )  
     
-    grid_map_visualization_node = Node(
+    global_elevation_mapping_visualization = Node(
         package='grid_map_visualization',
         executable='grid_map_visualization',
-        name='grid_map_visualization',
+        name='global_elevation_mapping_visualization',
         output='screen',
         parameters=[global_elevation_mapping_config]
     )
 
     return LaunchDescription([
         global_elevation_mapping,
-        grid_map_visualization_node
+        global_elevation_mapping_visualization
         ])
