@@ -16,14 +16,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
-
-include_directories(
-  include
-)
-
-set(DEPENDENCIES
-  rclcpp
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
   # geometry_msgs
   # nav_msgs
   # nav2_core
@@ -33,9 +27,17 @@ set(DEPENDENCIES
   # mppi_controller
 )
 
-foreach(pkg IN LISTS DEPENDENCIES)
-  find_package(${pkg} REQUIRED)
-endforeach()
+catkin_package(
+ INCLUDE_DIRS include
+#  LIBRARIES snap_vislam
+ CATKIN_DEPENDS roscpp
+#  DEPENDS system_lib
+)
+
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
 
 ###########
 # Library #
@@ -45,8 +47,12 @@ add_library(global_elevation_mapping
   src/global_elevation_mapping.cpp
 )
 
-ament_target_dependencies(global_elevation_mapping
-  ${DEPENDENCIES}
+add_dependencies(global_elevation_mapping
+  ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(global_elevation_mapping
+  ${catkin_LIBRARIES}
 )
 
 ##############
@@ -54,49 +60,17 @@ ament_target_dependencies(global_elevation_mapping
 ##############
 
 add_executable(global_elevation_mapping_node src/global_elevation_mapping_node.cpp)
-target_include_directories(global_elevation_mapping_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
 
-ament_target_dependencies(global_elevation_mapping_node
-  ${DEPENDENCIES}
+add_dependencies(global_elevation_mapping_node
+  ${catkin_EXPORTED_TARGETS}
 )
 
 target_link_libraries(global_elevation_mapping_node
   global_elevation_mapping
+  ${catkin_LIBRARIES}
 )
 
 ###########
 # Install #
 ###########
 
-install(TARGETS
-  global_elevation_mapping
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-install(TARGETS global_elevation_mapping_node
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-install(
-  DIRECTORY    
-    launch  
-    config
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # uncomment the line when a copyright and license is not present in all source files
-  #set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # uncomment the line when this package is not in a git repo
-  #set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
-
-ament_package()

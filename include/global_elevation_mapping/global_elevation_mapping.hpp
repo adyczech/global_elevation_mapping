@@ -1,16 +1,16 @@
 # pragma once
 
-#include "rclcpp/rclcpp.hpp"
+#include <ros/ros.h>
 
 #include "grid_map_ros/grid_map_ros.hpp"
-#include "grid_map_msgs/msg/grid_map.hpp"
+// #include "grid_map_msgs/grid_map.h"
 
 namespace global_elevation_mapping{
 
-class GlobalElevationMapping : public rclcpp::Node
+class GlobalElevationMapping
 {
   public:
-    explicit GlobalElevationMapping();
+    explicit GlobalElevationMapping(ros::NodeHandle& nh);
       
     virtual ~GlobalElevationMapping();    
     
@@ -22,11 +22,13 @@ class GlobalElevationMapping : public rclcpp::Node
     
     void initialize(void);
 
-    void input_grid_map_callback(const grid_map_msgs::msg::GridMap::SharedPtr msg);
+    void input_grid_map_callback(const grid_map_msgs::GridMap::ConstPtr& msg);
 
     void publish_map_callback(void);
 
   private:
+    ros::NodeHandle nh_;
+
     std::string global_frame_;
     std::string robot_frame_;
 
@@ -41,10 +43,10 @@ class GlobalElevationMapping : public rclcpp::Node
     grid_map::GridMap map_;
     std::vector<std::string> map_layers_;
 
-    rclcpp::Subscription<grid_map_msgs::msg::GridMap>::SharedPtr input_grid_map_sub_;
-    rclcpp::Publisher<grid_map_msgs::msg::GridMap>::SharedPtr output_grid_map_pub_;
+    ros::Subscriber input_grid_map_sub_;
+    ros::Publisher output_grid_map_pub_;
 
-    rclcpp::TimerBase::SharedPtr publish_map_timer_;
+    ros::Timer publish_map_timer_;
 };
 
 

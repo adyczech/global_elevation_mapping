@@ -1,0 +1,12 @@
+<launch>
+    <arg name="global_elevation_mapping_config" default="$(find global_elevation_mapping)/config/global_elevation_mapping.yaml"/>
+    <arg name="global_elevation_mapping_visualization_config" default="$(find global_elevation_mapping)/config/global_elevation_mapping_visualization.yaml"/>
+
+    <node pkg="global_elevation_mapping" type="global_elevation_mapping_node" name="global_elevation_mapping" output="screen" >
+        <rosparam file="$(arg global_elevation_mapping_config)" />
+    </node>
+
+    <node pkg="grid_map_visualization" type="grid_map_visualization" name="global_elevation_mapping_visualization" output="screen">
+        <rosparam file="$(arg global_elevation_mapping_visualization_config)" />
+    </node>
+</launch>

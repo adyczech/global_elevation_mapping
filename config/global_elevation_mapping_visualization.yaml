@@ -1,0 +1,8 @@
+grid_map_topic: /global_elevation_map
+
+
+grid_map_visualizations:
+  - name: global_elevation_map_points
+    type: point_cloud
+    params:
+      layer: elevation_inpainted #elevation #

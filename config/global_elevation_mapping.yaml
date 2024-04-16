@@ -1,26 +1,13 @@
-global_elevation_mapping:
-  ros__parameters:
-    global_frame: map
-    robot_frame: base_link
+global_frame: map
+robot_frame: base_link
 
-    input_grid_map_topic: /elevation_map_raw
-    output_grid_map_topic: /global_elevation_map
+input_grid_map_topic: /elevation_map_raw
+output_grid_map_topic: /global_elevation_map
 
-    update_frequency: 1.0
-    publish_frequency: 1.0    
+update_frequency: 1.0
+publish_frequency: 1.0    
 
-    resolution: 0.25
-    width: 50.0 # x 
-    hegith: 50.0 # y
-    layers: ["elevation", "elevation_inpainted"]
-
-global_elevation_mapping_visualization:
-  ros__parameters:
-    grid_map_topic: /global_elevation_map
-
-    grid_map_visualizations: [global_elevation_map_points]
-
-    global_elevation_map_points:
-      type: point_cloud
-      params:
-        layer: elevation_inpainted #elevation #
+resolution: 0.25
+width: 50.0 # x 
+height: 50.0 # y
+layers: ["elevation", "elevation_inpainted"]

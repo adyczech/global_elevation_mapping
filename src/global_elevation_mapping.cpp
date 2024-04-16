@@ -2,48 +2,47 @@
 
 namespace global_elevation_mapping{
 
-GlobalElevationMapping::GlobalElevationMapping():
-    Node("global_elevation_mapping")
+GlobalElevationMapping::GlobalElevationMapping(ros::NodeHandle& nh)
 {
+    nh_ = nh;
     read_parameters();
     setup_subsribers();
     setup_publishers();
     initialize();
 
-    RCLCPP_INFO(this->get_logger(), "GlobalElevationMapping started");
+    ROS_INFO("GlobalElevationMapping started");
 }
 
 GlobalElevationMapping::~GlobalElevationMapping()
 {
-    RCLCPP_INFO(this->get_logger(), "GlobalElevationMapping destructor");
+    ROS_INFO("GlobalElevationMapping destructor");
 }
 
 void GlobalElevationMapping::read_parameters(void)
 {    
-    declare_parameter("global_frame", "map");
-    declare_parameter("robot_frame", "base_link");
-    declare_parameter("input_grid_map_topic", "/elevation_map_raw");
-    declare_parameter("output_grid_map_topic", "/global_elevation_map");
-    declare_parameter("update_frequency", 1.0);
-    declare_parameter("publish_frequency", 1.0);
-    declare_parameter("resolution", 0.5);
-    declare_parameter("width", 5.0);
-    declare_parameter("height", 5.0);
-    declare_parameter("layers", std::vector<std::string>({"elevation"}));
+    nh_.param("global_frame", global_frame_, std::string("map"));
+    nh_.param("robot_frame", robot_frame_, std::string("base_link"));
+    nh_.param("update_frequency", update_frequency_, 1.0);
+    nh_.param("publish_frequency", publish_frequency_, 1.0);
+    nh_.param("resolution", resolution_, 0.5);
+    nh_.param("width", width_, 5.0);
+    nh_.param("height", height_, 5.0);
+    nh_.param("layers", map_layers_, std::vector<std::string>({"elevation"}));
 
-    map_layers_ = get_parameter("layers").as_string_array();
-
-    RCLCPP_INFO(this->get_logger(), "GlobalElevationMapping with width: %f, height:%f, resolution: %f",
-        get_parameter("width").as_double(),
-        get_parameter("height").as_double(),
-        get_parameter("resolution").as_double()
+    ROS_INFO("GlobalElevationMapping with width: %f, height:%f, resolution: %f",
+        width_,
+        height_,
+        resolution_
     );
 }
 
 void GlobalElevationMapping::setup_subsribers(void)
 {
-    input_grid_map_sub_ = this->create_subscription<grid_map_msgs::msg::GridMap>(
-        get_parameter("input_grid_map_topic").as_string(),
+    std::string input_grid_map_topic;
+    nh_.param("input_grid_map_topic", input_grid_map_topic, std::string("/elevation_map_raw"));
+
+    input_grid_map_sub_ = nh_.subscribe<grid_map_msgs::GridMap>(
+        input_grid_map_topic,
         10,
         std::bind(&GlobalElevationMapping::input_grid_map_callback, this, std::placeholders::_1)
     );
@@ -51,35 +50,36 @@ void GlobalElevationMapping::setup_subsribers(void)
 
 void GlobalElevationMapping::setup_publishers(void)
 {
-    output_grid_map_pub_ = this->create_publisher<grid_map_msgs::msg::GridMap>(
-        get_parameter("output_grid_map_topic").as_string(),
+    std::string output_grid_map_topic;
+    nh_.param("output_grid_map_topic", output_grid_map_topic, std::string("/elevation_map"));
+
+    output_grid_map_pub_ = nh_.advertise<grid_map_msgs::GridMap>(
+        output_grid_map_topic,
         10
     );
 }
 
 void GlobalElevationMapping::initialize(void)
 {
-    map_.setFrameId(get_parameter("global_frame").as_string());
+    map_.setFrameId(global_frame_);
     map_.setGeometry(
-        grid_map::Length(get_parameter("width").as_double(), get_parameter("height").as_double()),
-        get_parameter("resolution").as_double()
+        grid_map::Length(width_, height_),
+        resolution_
     );
 
     for(auto layer : map_layers_){
         map_.add(layer);
     }
 
-    publish_map_timer_ = rclcpp::create_timer(
-        this,
-        this->get_clock(),
-        std::chrono::milliseconds(static_cast<int>(1000.0/get_parameter("publish_frequency").as_double())),
+    publish_map_timer_ = nh_.createTimer(
+        ros::Duration(1.0/publish_frequency_),
         std::bind(&GlobalElevationMapping::publish_map_callback, this)
     );
 }
 
-void GlobalElevationMapping::input_grid_map_callback(const grid_map_msgs::msg::GridMap::SharedPtr msg)
+void GlobalElevationMapping::input_grid_map_callback(const grid_map_msgs::GridMap::ConstPtr& msg)
 {
-    RCLCPP_INFO(this->get_logger(), "Local map received");
+    ROS_INFO("Local map received");
     
     grid_map::GridMap local_map;
     grid_map::GridMapRosConverter::fromMessage(*msg, local_map);
@@ -89,11 +89,11 @@ void GlobalElevationMapping::input_grid_map_callback(const grid_map_msgs::msg::G
 
 void GlobalElevationMapping::publish_map_callback(void)
 {    
-    grid_map_msgs::msg::GridMap::SharedPtr output_msg = std::make_shared<grid_map_msgs::msg::GridMap>();
-    output_msg = grid_map::GridMapRosConverter::toMessage(map_);
+    grid_map_msgs::GridMap output_msg;
+    grid_map::GridMapRosConverter::toMessage(map_, output_msg);
 
-    output_grid_map_pub_->publish(*output_msg);
-    RCLCPP_INFO(this->get_logger(), "Global map published"); 
+    output_grid_map_pub_.publish(output_msg);
+    ROS_INFO("Global map published"); 
 }
 
 } // namespace global_elevation_mapping
