@@ -1,7 +1,7 @@
-global_frame: map
+global_frame: odom
 robot_frame: base_link
 
-input_grid_map_topic: /elevation_map_raw
+input_grid_map_topic: /elevation_mapping/elevation_map_raw
 output_grid_map_topic: /global_elevation_map
 
 update_frequency: 1.0
